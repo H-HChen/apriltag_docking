@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>auto_dock</name>
+  <version>1.0.0</version>
+  <description>The auto_dock package</description>
+  <maintainer email="annhunter201@gmail.com">H-HChen</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>geometry_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+  <depend>apriltag_ros</depend>
+  <depend>tf</depend>
+  <depend>apriltag</depend>
+  <depend>pluginlib</depend>
+  <depend>eigen</depend>
+  <depend>cmake_modules</depend>
+  <depend>sensor_msgs</depend>
+  <depend>libopencv</depend>
+  <depend>cv_bridge</depend>
+
+</package>
