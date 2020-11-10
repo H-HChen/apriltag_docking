@@ -102,7 +102,7 @@ void autodock_controller::searching_state_fun(){
     else{
         tag_callback_counter = 0;
         set_action_state("");
-        openrover_turn(default_turn);
+        openrover_turn(default_turn*sign(tag_y));
     }
 }
 
@@ -119,10 +119,7 @@ void autodock_controller::centering_state_fun(){
     }
     tag_callback_counter = 0;
     set_action_state("");
-    if (centering_counter == 5){
-        ROS_INFO("tuning:%f",default_turn*last_sign);
-        openrover_turn(default_turn*sign(-tag_x));
-    }
+    
     if (centering_counter >= max_center_count){
         ROS_WARN("centering failed. reverting to last state: searching");
         tag_callback_counter = 0;
@@ -228,9 +225,9 @@ void autodock_controller::openrover_turn(double radians){
             cmd_vel_angular = cmd_vel_angular_rate;
         }
 
-        if (fabs(radians) < 0.1){
-            cmd_vel_angular = cmd_vel_angular/2;
-        }
+        //if (fabs(radians) < 0.1){
+        //    cmd_vel_angular = cmd_vel_angular/2;
+        //}
     }
     cmd_vel_msg.angular.z = cmd_vel_angular;
     robot_point_temp = robot_point;
@@ -255,18 +252,17 @@ void autodock_controller::receive_tf(){
         listener.waitForTransform("odom","base_link",ros::Time(0),ros::Duration(1.0));
         listener.lookupTransform("odom","base_link",ros::Time(0),tf_odom);
         listener.lookupTransform("tag_0","base_link",ros::Time(0),tf_tag);
-        double tag_x = tf_tag.getOrigin().x();
+        double tag_y = tf_tag.getOrigin().y();
         double odom_x = tf_odom.getOrigin().x();
         double odom_y = tf_odom.getOrigin().y();
         double odom_yaw = tf::getYaw(tf_odom.getRotation());
         robot_point = {odom_x , odom_y , odom_yaw};
-        if (fabs(tag_x)<0.1){
+        if (fabs(tag_y)<0.05){
             desire_angle = 0;
         } 
         else{
             desire_angle = tune_angle;
         }
-        ROS_INFO("%f" , tag_x);
     }
     catch(tf2::TransformException &ex){
         ROS_ERROR("%s",ex.what());
