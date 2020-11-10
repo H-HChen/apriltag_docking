@@ -8,5 +8,5 @@ git clone https://github.com/H-HChen/apriltag_docking.git
 cd ..
 rosdep install --from-paths src --ignore-src -r -y
 sudo pip3 install -U catkin_tools
-catkin build
+catkin build   #ignore all warning plz 
 ``` 
