@@ -1,6 +1,6 @@
 # apriltag_docking
 
-## install
+## Install
 ```
 mkdir -p autodock_ros1_ws/src
 cd ~/autodock_ros1_ws/src
@@ -44,7 +44,7 @@ tag_debug:         0          # default: 0
 publish_tf:        true       # default: false
 
 ```
-## simulation in gazebo
+## Simulation in gazebo
 1. Launch Neuronbot2 and tag in gazebo
 ```
 roslaunch neuronbot2_gazebo neuronbot2_world.launch world_model:=tag.model
