@@ -21,12 +21,25 @@ vim src/apriltag_ros/apriltag_ros/config/setting.yaml
 ```
 
 ### tag.yaml
-set tags id you want
+Set tags id you want
 ```
 standalone_tags:
   [
     {id: 0, size: 0.08 , frame_name: tag_0},
     {id: 10, size: 0.03}
   ]
+
+```
+### setting.yaml
+Remember to turn publish_tf on
+```
+tag_family:        'tag36h11' # options: tagStandard52h13, tagStandard41h12, tag36h11, tag25h9, tag16h5, tagCustom48h12, tagCircle21h7, tagCircle49h12
+tag_threads:       4          # default: 2
+tag_decimate:      1.0        # default: 1.0
+tag_blur:          0.0        # default: 0.0
+tag_refine_edges:  1          # default: 1
+tag_debug:         0          # default: 0
+# Other parameters
+publish_tf:        true       # default: false
 
 ```
