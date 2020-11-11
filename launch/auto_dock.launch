@@ -21,7 +21,7 @@
   <node pkg="auto_dock" type="controller" name="controller_node" output="screen">
   <param name="tune_angle" value="0.42" />
   <param name="default_turn" value="1.0" />
-  <param name="jog_distance" value="0.1" />
+  <param name="jog_distance" value="0.2" />
   <param name="cmd_vel_angular_rate" value="0.5" />
   <param name="cmd_vel_linear_rate" value="0.5" />
   </node>

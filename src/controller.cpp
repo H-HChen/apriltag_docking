@@ -20,9 +20,16 @@ void autodock_controller::tags_callback(const apriltag_ros::AprilTagDetectionArr
         in_view = true;
         ROS_INFO("marker detected");
         if (docking_state=="searching"){
+            if(fabs(tag_y/tag_x) >= fabs(tag_x/2)){
+                openrover_stop();
+                tag_callback_counter = 0;
+                set_docking_state("blind");
+            }
+            else{
             openrover_stop();
             tag_callback_counter = 0;
             set_docking_state("centering");
+            }
         }
         fid2pos(dock_tag_tf);
     }
@@ -34,6 +41,10 @@ void autodock_controller::docking_state_manage(){
     
     if (docking_state == "searching"){
         searching_state_fun();
+    }
+
+    if (docking_state == "blind"){
+        blind_state_fun();
     }
         
     if (docking_state == "centering"){
@@ -70,7 +81,7 @@ void autodock_controller::fid2pos( geometry_msgs::PoseWithCovarianceStamped fid_
         theta_bounds = r/30.0;
     }
     ROS_INFO("Theta: %3.3f, r: %3.3f, theta_bounds: %3.3f", theta, r, theta_bounds);
-    pose_set = {theta: theta+desire_angle, distance: r, theta_bounds: theta_bounds};
+    pose_set = {theta: theta-desire_angle*sign(tag_y), distance: r, theta_bounds: theta_bounds};
 }
 
 void autodock_controller::set_docking_state(std::string new_docking_state){
@@ -92,7 +103,10 @@ void autodock_controller::set_action_state(std::string new_action_state){
 void autodock_controller::searching_state_fun(){
     ROS_INFO("searching tag count: %d", tag_callback_counter);
     centering_counter = 0;
-    if (action_state=="turning"){
+    if (action_state== "turning"){
+        return;
+    }
+    if (action_state == "jogging"){
         return;
     }
     if (tag_callback_counter<lost_tag_max){
@@ -105,9 +119,32 @@ void autodock_controller::searching_state_fun(){
     }
 }
 
+void autodock_controller::blind_state_fun(){
+    if (action_state=="turning"){
+        return;
+    }
+    if (action_state == "jogging"){
+        return;
+    }
+    if (in_view){
+        openrover_stop();
+        openrover_turn(0.7*sign(-tag_y));
+    }
+    else{
+        openrover_stop();
+        openrover_forward(fabs(tag_y/2));
+        set_docking_state("searching");
+        
+    }
+
+}
+
 void autodock_controller::centering_state_fun(){
 
-    if (action_state=="turning"){
+    if (action_state == "turning"){
+        return;
+    }
+    if (action_state == "jogging"){
         return;
     }
     if (tag_callback_counter < 1){
@@ -122,18 +159,19 @@ void autodock_controller::centering_state_fun(){
     if (centering_counter >= max_center_count){
         ROS_WARN("centering failed. reverting to last state: searching");
         tag_callback_counter = 0;
-        set_action_state("");
         set_docking_state("searching");
         return;
     }
     if (in_view){
         if (fabs(pose_set.theta)>pose_set.theta_bounds){
+            openrover_stop();
             openrover_turn(pose_set.theta);
         }
         else{
             //ROS_INFO("centered switching to approach state");
             openrover_stop();
             set_docking_state("approach");
+            
         }
     }
 }
@@ -145,46 +183,53 @@ void autodock_controller::approach_state_fun(){
         if (action_state == "jogging"){
             return;
         }
+        
         if (desire_angle == 0){
             if (fabs(pose_set.theta)>pose_set.theta_bounds){
                 ROS_INFO("approach angle exceeded: %f", fabs(pose_set.theta));
-                openrover_stop();
                 set_docking_state("centering");
             }
             else{
-                openrover_stop();
-                openrover_forward(pose_set.distance - finish_distance);
-                set_docking_state("final_approach");
+                if (fabs(pose_set.distance-finish_distance) < jog_distance){
+                    openrover_stop();
+                    openrover_forward(pose_set.distance - finish_distance);
+                    set_docking_state("final_approach");
+                }
+                else{
+                    openrover_forward(jog_distance);
+                }
             }
         }
         else{
-            openrover_stop();
             openrover_forward(jog_distance);
-            set_docking_state("centering");
         }
 
     }
     else{
-        if (desire_angle ==tune_angle){
-            ROS_INFO("Tune");
+        if (desire_angle == tune_angle){
             openrover_stop();
-            openrover_turn(default_turn*sign(tag_y)/5);
-            set_docking_state("centering");
+            //openrover_turn(default_turn*sign(tag_y)/3);
+            set_docking_state("searching");
         }
     }
     
 }
 
 void autodock_controller::final_approach_state_fun(){
-    if (in_view and (fabs(pose_set.distance)>finish_distance)){
-        set_docking_state("approach");
-        return;
-    }
     if (action_state == "turning"){
         return;
     }
-    if (fabs(pose_set.theta)>pose_set.theta_bounds){
-        openrover_turn(pose_set.theta);
+    if (action_state == "jogging"){
+        return;
+    }  
+
+    if (in_view and fabs(pose_set.distance-finish_distance)>0.1){
+        set_docking_state("approach");
+        return;
+    }
+
+    if (M_PI-fabs(tag_yaw)>pose_set.theta_bounds){
+        openrover_turn((M_PI-fabs(tag_yaw))*sign(-tag_yaw));
         return;
     }
     else{
@@ -241,7 +286,7 @@ void autodock_controller::openrover_turn(double radians){
     cmd_vel_msg.angular.z = cmd_vel_angular;
     robot_point_temp = robot_point;
     temp_theta = radians;
-  
+    
 }
 
 void autodock_controller::action_state_manage(){
@@ -259,8 +304,10 @@ void autodock_controller::action_state_manage(){
     if (tag_y){
         if ((fabs(tag_y)<0.03) and (desire_angle == tune_angle)){
             openrover_stop();
-            desire_angle = 0;
-            ROS_INFO("final stop");
+            final_counter += 1;
+            if (final_counter > 3){
+                desire_angle = 0;
+            }
         }
     }
     else{
@@ -274,12 +321,14 @@ void autodock_controller::receive_tf(){
     try{
         listener.lookupTransform("odom","base_link",ros::Time(0),tf_odom);
         listener.lookupTransform("tag_0","base_link",ros::Time(0),tf_tag);
+        tag_x = tf_tag.getOrigin().x();
         tag_y = tf_tag.getOrigin().y();
+        tag_yaw = tf::getYaw(tf_tag.getRotation());
         double odom_x = tf_odom.getOrigin().x();
         double odom_y = tf_odom.getOrigin().y();
         double odom_yaw = tf::getYaw(tf_odom.getRotation());
         robot_point = {odom_x , odom_y , odom_yaw};
-        //ROS_INFO("%f",tag_y);
+        ROS_INFO("%f",tag_yaw);
          
     }
     catch(tf2::TransformException &ex){
