@@ -1,6 +1,6 @@
 # apriltag_docking
 
-##install
+## install
 ```
 mkdir -p autodock_ros1_ws/src
 cd ~/autodock_ros1_ws/src
@@ -12,9 +12,9 @@ rosdep install --from-paths src --ignore-src -r -y
 sudo pip3 install -U catkin_tools
 catkin build   #ignore all warning plz 
 ``` 
-##Quickstart
+## Quickstart
 
-###step1 Modify tag.yaml and setting.yaml
+### step1 Modify tag.yaml and setting.yaml
 ```
 cd ~/autodock_ros1_ws/
 vim src/
