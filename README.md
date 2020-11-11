@@ -12,11 +12,21 @@ rosdep install --from-paths src --ignore-src -r -y
 sudo pip3 install -U catkin_tools
 catkin build   #ignore all warning plz 
 ``` 
-## Quickstart
 
-### step1 Modify tag.yaml and setting.yaml
+## Modify tag.yaml and setting.yaml
 ```
 cd ~/autodock_ros1_ws/
-vim src/
-vim 
+vim src/apriltag_ros/apriltag_ros/config/tag.yaml
+vim src/apriltag_ros/apriltag_ros/config/setting.yaml
+```
+
+### tag.yaml
+set tags id you want
+```
+standalone_tags:
+  [
+    {id: 0, size: 0.08 , frame_name: tag_0},
+    {id: 10, size: 0.03}
+  ]
+
 ```
