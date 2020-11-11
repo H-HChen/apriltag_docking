@@ -21,7 +21,7 @@ vim src/apriltag_ros/apriltag_ros/config/setting.yaml
 ```
 
 ### tag.yaml
-Set tags id you want
+Set tags id ,size and frame name of tf
 ```
 standalone_tags:
   [
@@ -42,4 +42,15 @@ tag_debug:         0          # default: 0
 # Other parameters
 publish_tf:        true       # default: false
 
+```
+## simulation in gazebo
+1. Launch Neuronbot2 and tag in gazebo
+```
+roslaunch neuronbot2_gazebo neuronbot2_world.launch world_model:=tag.model
+
+```
+2. Launch apriltag_docking 
+Remember to change names of camera_namespace and topic name
+```
+roslaunch auto_dock auto_dock.launch  camera_name:=/camera image_topic:=/raw_image camera_frame:=camera_link
 ```
