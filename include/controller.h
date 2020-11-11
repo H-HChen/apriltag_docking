@@ -23,9 +23,9 @@ namespace automatic_parking {
                 nh.param<double>("approach_angle" , approach_angle , 0.1);
                 nh.param<int>("lost_tag_max" , lost_tag_max ,5);
                 nh.param<double>("default_turn" , default_turn , 1.0);
-                nh.param<int>("max_center_count" , max_center_count ,30);
+                nh.param<int>("max_center_count" , max_center_count ,15);
                 nh.param<double>("final_approach_distance" , final_approach_distance ,1.0);
-                nh.param<double>("jog_distance" , jog_distance ,0.2);
+                nh.param<double>("jog_distance" , jog_distance ,0.1);
                 nh.param<double>("finish_distance" , finish_distance ,0.3);
                 nh.param<double>("mini_turn_period" , mini_turn_period , 0.18);
                 nh.param<double>("tune_angle" , tune_angle ,0.42);
@@ -68,7 +68,7 @@ namespace automatic_parking {
             tag_pose pose_set;
             geometry_msgs::Twist cmd_vel_msg;
             boost::array<double,3> robot_point_temp , robot_point;
-            double temp_theta , temp_distance , tag_y , desire_angle , tune_angle;
+            double temp_theta , temp_distance , tag_y , tag_yaw, desire_angle,tune_angle;
             double last_sign = 1;
 
         

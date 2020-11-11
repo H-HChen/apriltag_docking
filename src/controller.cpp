@@ -52,7 +52,6 @@ void autodock_controller::docking_state_manage(){
         openrover_stop();
     }
 
-    vel_pub.publish(cmd_vel_msg);
 }
 
 void autodock_controller::fid2pos( geometry_msgs::PoseWithCovarianceStamped fid_tf ){
@@ -132,9 +131,9 @@ void autodock_controller::centering_state_fun(){
             openrover_turn(pose_set.theta);
         }
         else{
-            ROS_INFO("centered switching to approach state");
-            set_docking_state("approach");
+            //ROS_INFO("centered switching to approach state");
             openrover_stop();
+            set_docking_state("approach");
         }
     }
 }
@@ -142,29 +141,36 @@ void autodock_controller::centering_state_fun(){
 void autodock_controller::approach_state_fun(){
     centering_counter = 0;
     if (in_view){
-        if (fabs(pose_set.theta)>pose_set.theta_bounds){
-            ROS_INFO("approach angle exceeded: %f", fabs(pose_set.theta));
-            openrover_stop();
-            set_docking_state("centering");
+
+        if (action_state == "jogging"){
+            return;
         }
-    
-        else{
-            if (action_state == "jogging"){
-                return;
+        if (desire_angle == 0){
+            if (fabs(pose_set.theta)>pose_set.theta_bounds){
+                ROS_INFO("approach angle exceeded: %f", fabs(pose_set.theta));
+                openrover_stop();
+                set_docking_state("centering");
             }
-            if (fabs(pose_set.distance-finish_distance) < jog_distance){
+            else{
                 openrover_stop();
                 openrover_forward(pose_set.distance - finish_distance);
                 set_docking_state("final_approach");
             }
-            else{
-                openrover_forward(jog_distance);
-            }
         }
+        else{
+            openrover_stop();
+            openrover_forward(jog_distance);
+            set_docking_state("centering");
+        }
+
     }
     else{
-        openrover_stop();
-        set_docking_state(last_docking_state);
+        if (desire_angle ==tune_angle){
+            ROS_INFO("Tune");
+            openrover_stop();
+            openrover_turn(default_turn*sign(tag_y)/5);
+            set_docking_state("centering");
+        }
     }
     
 }
@@ -174,10 +180,14 @@ void autodock_controller::final_approach_state_fun(){
         set_docking_state("approach");
         return;
     }
-    if (action_state == "jogging"){
+    if (action_state == "turning"){
         return;
     }
-    if (action_state == ""){
+    if (fabs(pose_set.theta)>pose_set.theta_bounds){
+        openrover_turn(pose_set.theta);
+        return;
+    }
+    else{
         openrover_stop();
         set_docking_state("docked");
         ROS_INFO("Finish Docking");
@@ -224,45 +234,53 @@ void autodock_controller::openrover_turn(double radians){
         else{
             cmd_vel_angular = cmd_vel_angular_rate;
         }
-
-        //if (fabs(radians) < 0.1){
-        //    cmd_vel_angular = cmd_vel_angular/2;
-        //}
+        if (fabs(radians) < 0.1){
+            cmd_vel_angular = cmd_vel_angular/2;
+        }
     }
     cmd_vel_msg.angular.z = cmd_vel_angular;
     robot_point_temp = robot_point;
     temp_theta = radians;
+  
 }
 
 void autodock_controller::action_state_manage(){
     if (action_state == "jogging"){
-        if (distance(robot_point_temp,robot_point) >= temp_distance){
+        if (distance(robot_point_temp,robot_point) >= fabs(temp_distance)){
             openrover_stop();
         }
+
     }
     if (action_state == "turning"){
-        if (fabs(robot_point_temp[2]-robot_point[2])>=temp_theta){
+        if (fabs(robot_point_temp[2]-robot_point[2])>= fabs(temp_theta)){
             openrover_stop();
         }
     }
+    if (tag_y){
+        if ((fabs(tag_y)<0.03) and (desire_angle == tune_angle)){
+            openrover_stop();
+            desire_angle = 0;
+            ROS_INFO("final stop");
+        }
+    }
+    else{
+       desire_angle = tune_angle;
+    }
+    
+    vel_pub.publish(cmd_vel_msg);
 }
 
 void autodock_controller::receive_tf(){
     try{
-        listener.waitForTransform("odom","base_link",ros::Time(0),ros::Duration(1.0));
         listener.lookupTransform("odom","base_link",ros::Time(0),tf_odom);
         listener.lookupTransform("tag_0","base_link",ros::Time(0),tf_tag);
-        double tag_y = tf_tag.getOrigin().y();
+        tag_y = tf_tag.getOrigin().y();
         double odom_x = tf_odom.getOrigin().x();
         double odom_y = tf_odom.getOrigin().y();
         double odom_yaw = tf::getYaw(tf_odom.getRotation());
         robot_point = {odom_x , odom_y , odom_yaw};
-        if (fabs(tag_y)<0.05){
-            desire_angle = 0;
-        } 
-        else{
-            desire_angle = tune_angle;
-        }
+        //ROS_INFO("%f",tag_y);
+         
     }
     catch(tf2::TransformException &ex){
         ROS_ERROR("%s",ex.what());
@@ -271,9 +289,8 @@ void autodock_controller::receive_tf(){
 
 void autodock_controller::run(){
     receive_tf();
-    action_state_manage();
     docking_state_manage();
-
+    action_state_manage();
 }
 
 int main(int argc, char** argv){
