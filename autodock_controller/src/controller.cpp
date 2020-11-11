@@ -328,7 +328,7 @@ void autodock_controller::receive_tf(){
         double odom_y = tf_odom.getOrigin().y();
         double odom_yaw = tf::getYaw(tf_odom.getRotation());
         robot_point = {odom_x , odom_y , odom_yaw};
-        ROS_INFO("%f",tag_yaw);
+        //ROS_INFO("%f",tag_y);
          
     }
     catch(tf2::TransformException &ex){
