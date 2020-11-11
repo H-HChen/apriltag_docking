@@ -31,6 +31,7 @@ standalone_tags:
 
 ```
 ### setting.yaml
+
 Remember to turn publish_tf on
 ```
 tag_family:        'tag36h11' # options: tagStandard52h13, tagStandard41h12, tag36h11, tag25h9, tag16h5, tagCustom48h12, tagCircle21h7, tagCircle49h12
