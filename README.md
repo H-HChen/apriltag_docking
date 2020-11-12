@@ -47,7 +47,7 @@ publish_tf:        true       # default: false
 ## Simulation in gazebo
 1. Launch Neuronbot2 and tag in gazebo
 ```
-roslaunch neuronbot2_gazebo neuronbot2_world.launch world_model:=tag.model
+roslaunch neuronbot2_gazebo neuronbot2_world.launch world_model:=tag.model use_camera:=true
 ```
 2. Launch apriltag_docking 
 
