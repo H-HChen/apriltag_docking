@@ -27,7 +27,7 @@ void autodock_controller::docking_state_manage(){
     }
 
     if (docking_state == "docked"){
-        openrover_stop();
+        neuron_stop();
     }
 
 }
@@ -63,7 +63,7 @@ void autodock_controller::searching_state_fun(){
     else{
         tag_callback_counter = 0;
         set_action_state("");
-        openrover_turn(default_turn*sign(tag_y));
+        neuron_turn(default_turn*sign(tag_y));
     }
 }
 
@@ -75,12 +75,12 @@ void autodock_controller::blind_state_fun(){
         return;
     }
     if (in_view){
-        openrover_stop();
-        openrover_turn(0.7*sign(-tag_y));
+        neuron_stop();
+        neuron_turn(0.7*sign(-tag_y));
     }
     else{
-        openrover_stop();
-        openrover_forward(fabs(tag_y/2));
+        neuron_stop();
+        neuron_forward(fabs(tag_y/2));
         set_docking_state("searching");
         
     }
@@ -90,9 +90,6 @@ void autodock_controller::blind_state_fun(){
 void autodock_controller::centering_state_fun(){
 
     if (action_state == "turning"){
-        return;
-    }
-    if (action_state == "jogging"){
         return;
     }
     if (tag_callback_counter < 1){
@@ -112,12 +109,13 @@ void autodock_controller::centering_state_fun(){
     }
     if (in_view){
         if (fabs(pose_set.theta)>pose_set.theta_bounds){
-            openrover_stop();
-            openrover_turn(pose_set.theta);
+            neuron_stop();
+            neuron_turn(pose_set.theta);
+            
         }
         else{
             //RCLCPP_INFO(get_logger(),"centered switching to approach state");
-            openrover_stop();
+            neuron_stop();
             set_docking_state("approach");
             
         }
@@ -127,7 +125,7 @@ void autodock_controller::centering_state_fun(){
 void autodock_controller::approach_state_fun(){
     centering_counter = 0;
     if (in_view){
-
+        approach_counter = 0;
         if (action_state == "jogging"){
             return;
         }
@@ -139,26 +137,30 @@ void autodock_controller::approach_state_fun(){
             }
             else{
                 if (fabs(pose_set.distance-finish_distance) < jog_distance){
-                    openrover_stop();
-                    openrover_forward(pose_set.distance - finish_distance);
+                    neuron_stop();
+                    neuron_forward(pose_set.distance - finish_distance);
                     set_docking_state("final_approach");
                 }
                 else{
-                    openrover_forward(jog_distance);
+                    neuron_forward(jog_distance);
                 }
             }
         }
         else{
-            openrover_forward(jog_distance);
+            neuron_forward(jog_distance);
         }
-
     }
     else{
-        if (desire_angle == tune_angle){
-            openrover_stop();
-            //openrover_turn(default_turn*sign(tag_y)/3);
-            set_docking_state("searching");
+        approach_counter += 1;
+        if(approach_counter > lost_tag_max){
+            neuron_stop();
+            if (desire_angle == tune_angle){
+                set_docking_state("searching");
+            }
+            else{set_docking_state("centering");}
         }
+
+        
     }
     
 }
@@ -177,17 +179,17 @@ void autodock_controller::final_approach_state_fun(){
     }
 
     if (M_PI-fabs(tag_yaw)>pose_set.theta_bounds){
-        openrover_turn((M_PI-fabs(tag_yaw))*sign(-tag_yaw));
+        neuron_turn((M_PI-fabs(tag_yaw))*sign(-tag_yaw));
         return;
     }
     else{
-        openrover_stop();
+        neuron_stop();
         set_docking_state("docked");
         RCLCPP_INFO(get_logger(),"Finish Docking");
     }
 }
 
-void autodock_controller::openrover_forward(double distance){
+void autodock_controller::neuron_forward(double distance){
     double cmd_vel_linear ;
     if (action_state == ""){
         set_action_state("jogging");
@@ -210,14 +212,14 @@ void autodock_controller::openrover_forward(double distance){
     temp_distance = distance;
 }
 
-void autodock_controller::openrover_stop(){
+void autodock_controller::neuron_stop(){
     set_action_state("");
     cmd_vel_msg.linear.x = 0;
     cmd_vel_msg.angular.z = 0;
     
 }
 
-void autodock_controller::openrover_turn(double radians){
+void autodock_controller::neuron_turn(double radians){
     double cmd_vel_angular;
     if (action_state == ""){
         set_action_state("turning");
@@ -238,20 +240,21 @@ void autodock_controller::openrover_turn(double radians){
 }
 
 void autodock_controller::action_state_manage(){
+    RCLCPP_INFO(get_logger(), "%s | %s", action_state.c_str(), last_action_state.c_str());
     if (action_state == "jogging"){
-        if (distance(robot_point_temp,robot_point) >= fabs(temp_distance)){
-            openrover_stop();
+        if (distance(robot_point_temp, robot_point) >= fabs(temp_distance)){
+            neuron_stop();
         }
 
     }
-    if (action_state == "turning"){
-        if (fabs(robot_point_temp[2]-robot_point[2])>= fabs(temp_theta)){
-            openrover_stop();
-        }
+    if (action_state == "turning" ){
+        if (fabs(robot_point_temp[2]-robot_point[2])>= fabs(temp_theta)){neuron_stop();}
+        else if (fabs(pose_set.theta) < pose_set.theta_bounds and docking_state != "blind" and docking_state != "final_approach"){
+            neuron_stop();}
     }
     if (tag_y){
         if ((fabs(tag_y)<0.03) and (desire_angle == tune_angle)){
-            openrover_stop();
+            neuron_stop();
             final_counter += 1;
             if (final_counter > 3){
                 desire_angle = 0;
@@ -261,7 +264,6 @@ void autodock_controller::action_state_manage(){
     else{
        desire_angle = tune_angle;
     }
-    
     vel_pub->publish(cmd_vel_msg);
 }
 
@@ -273,67 +275,82 @@ void autodock_controller::tags_callback(){
         tag_callback_counter = 0;
     }
 
-    in_view = true;
-    RCLCPP_INFO(get_logger(),"marker detected");
-    if (docking_state=="searching"){
+    if (docking_state=="searching" and in_view){
         if(fabs(tag_y/tag_x) >= fabs(tag_x/2)){
-            openrover_stop();
+            neuron_stop();
             tag_callback_counter = 0;
             set_docking_state("blind");
         }
         else{
-        openrover_stop();
-        tag_callback_counter = 0;
-        set_docking_state("centering");
+            neuron_stop();
+            tag_callback_counter = 0;
+            set_docking_state("centering");
         }
     }   
 }
 
 void autodock_controller::fid2pos(){
+    RCLCPP_INFO(get_logger(),"marker detected");
     double x_trans = tf_bot2dock.transform.translation.x;
     double y_trans = tf_bot2dock.transform.translation.y;
-    double theta_tf = tf2::getYaw(tf_bot2dock.transform.rotation);
     double theta = atan2(-y_trans, x_trans);
-    RCLCPP_INFO(get_logger(),"theta_cal:%f , theta_tf:%f",theta ,theta_tf );
     double r = sqrt(pow(x_trans ,2) + pow(y_trans , 2));
     double theta_bounds;
-    if (r > 3.0){
-        theta_bounds = approach_angle;
-    }
 
-    else{
-        theta_bounds = r/30.0;
-    }
-    RCLCPP_INFO(get_logger(),"Theta: %3.3f, r: %3.3f, theta_bounds: %3.3f", theta, r, theta_bounds);
+    if (r > 3.0){theta_bounds = approach_angle;}
+    else{theta_bounds = r/30.0;}
+
+    //RCLCPP_INFO(get_logger(),"Theta: %3.3f, distance: %3.3f, theta_bounds: %3.3f", theta, r, theta_bounds);
     pose_set = {theta: theta-desire_angle*sign(tag_y), distance: r, theta_bounds: theta_bounds};
+}
+
+void autodock_controller::transform_filter(geometry_msgs::msg::TransformStamped &tf_){
+    double time = tf_.header.stamp.sec + double(tf_dock2bot.header.stamp.nanosec)*(1e-9);
+    if (time == last_time){
+        in_view = false;
+    }
+    else{in_view = true;}
+    last_time = time;
+    if (!in_view){RCLCPP_WARN(get_logger(),"Tag Detection Lost") ;}
 }
 
 void autodock_controller::receive_tf(){
     try{
-        tf_odom = buffer_odom->lookupTransform("odom","base_link",tf2::TimePoint(std::chrono::milliseconds(0)),tf2::Duration(std::chrono::seconds(0)));
-        tf_dock2bot = buffer_dock2bot->lookupTransform("tag36h11:0","base_link",tf2::TimePoint(std::chrono::milliseconds(0)),tf2::Duration(std::chrono::seconds(0)));
-        tf_bot2dock = buffer_bot2dock->lookupTransform("base_link","tag36h11:0",tf2::TimePoint(std::chrono::milliseconds(0)),tf2::Duration(std::chrono::seconds(0)));
-
-        tag_x = tf_dock2bot.transform.translation.z;
-        tag_y = tf_dock2bot.transform.translation.x;
-        tag_yaw = tf2::getYaw(tf_dock2bot.transform.rotation);
-        double odom_x = tf_odom.transform.translation.x;
-        double odom_y = tf_odom.transform.translation.y; 
-        double odom_yaw = tf2::getYaw(tf_odom.transform.rotation);
+        tf_odom = buffer_->lookupTransform("odom","base_link",tf2::TimePointZero);
+        odom_x = tf_odom.transform.translation.x;
+        odom_y = tf_odom.transform.translation.y; 
+        odom_yaw = tf2::getYaw(tf_odom.transform.rotation);
         robot_point = {odom_x , odom_y , odom_yaw};
-        //RCLCPP_INFO(get_logger(),"%f",tag_y);
-        tags_callback();
+
+        tf_dock2bot = buffer_->lookupTransform("tag36h11:0","base_link",tf2::TimePointZero);
+        tf_bot2dock = buffer_->lookupTransform("base_link","tag36h11:0",tf2::TimePointZero);
+        transform_filter(tf_dock2bot);
+
+        if (!in_view){return;}
+        tag_x = tf_dock2bot.transform.translation.x;
+        tag_y = tf_dock2bot.transform.translation.y;
+        tag_yaw = tf2::getYaw(tf_dock2bot.transform.rotation);
+        
         fid2pos();
     }
     catch(tf2::TransformException &ex){
         RCLCPP_ERROR(get_logger(),"%s",ex.what());
         in_view = false;
-
+    }
+    catch (tf2::ExtrapolationException & ex) {
+        RCLCPP_ERROR(get_logger(),"%s",ex.what());
+        in_view = false;
+    }
+    catch (tf2::ConnectivityException & ex) {
+        RCLCPP_ERROR(get_logger(),"%s",ex.what());
+        in_view = false;
     }
 }
 
+
 void autodock_controller::run(){
     receive_tf();
+    tags_callback();
     docking_state_manage();
     action_state_manage();
 }
@@ -341,7 +358,7 @@ void autodock_controller::run(){
 int main(int argc, char** argv){
     rclcpp::init(argc, argv);
     auto controller_node = std::make_shared<automatic_parking::autodock_controller>() ;
-    rclcpp::Rate rate(30.0);
+    rclcpp::Rate rate(20.0);
     controller_node->set_docking_state("searching");
     while (rclcpp::ok()){
         controller_node->run();

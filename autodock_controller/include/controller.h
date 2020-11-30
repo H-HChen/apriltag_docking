@@ -11,6 +11,7 @@
 #include <chrono>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2/utils.h>
+#include <geometry_msgs/msg/transform_stamped.hpp>
 
 
 #define sign(A)  ( (A) >= 0 ? 1.0: -1.0 )
@@ -21,9 +22,9 @@ namespace automatic_parking {
         public:
             autodock_controller():Node("autodock_controller"){
                 
-                this->declare_parameter<double>("cmd_vel_angular_rate", 0.5);
+                this->declare_parameter<double>("cmd_vel_angular_rate", 0.25);
                 this->get_parameter("cmd_vel_angular_rate", cmd_vel_angular_rate );
-                this->declare_parameter<double>("cmd_vel_linear_rate", 0.5);
+                this->declare_parameter<double>("cmd_vel_linear_rate", 0.25);
                 this->get_parameter("cmd_vel_linear_rate" , cmd_vel_linear_rate );
                 this->declare_parameter<double>("approach_angle" , 0.1);
                 this->get_parameter("approach_angle" , approach_angle );
@@ -37,7 +38,7 @@ namespace automatic_parking {
                 this->get_parameter("final_approach_distance" , final_approach_distance);
                 this->declare_parameter<double>("jog_distance" ,0.2);
                 this->get_parameter("jog_distance" , jog_distance);
-                this->declare_parameter<double>("finish_distance" ,0.3);
+                this->declare_parameter<double>("finish_distance" ,0.5);
                 this->get_parameter("finish_distance" , finish_distance);
                 this->declare_parameter<double>("mini_turn_period" , 0.18);
                 this->get_parameter("mini_turn_period" , mini_turn_period);
@@ -45,24 +46,22 @@ namespace automatic_parking {
                 this->get_parameter("tune_angle" , tune_angle);
 
                 vel_pub = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 20);
-                buffer_dock2bot = std::make_unique<tf2_ros::Buffer>(this->get_clock());
-                buffer_odom = std::make_unique<tf2_ros::Buffer>(this->get_clock());
-                buffer_bot2dock = std::make_unique<tf2_ros::Buffer>(this->get_clock());
-
-                //tf_listener_dock = std::make_unique<tf2_ros::TransformListener>(*buffer_dock);
-                //tf_listener_odom = std::make_unique<tf2_ros::TransformListener>(*buffer_odom);
+                buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
+                tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*buffer_);
+                //tag_sub_ = this->create_subscription<geometry_msgs::msg::TransformStamped>("tag_detected",rclcpp::QoS(10),
+                 //           std::bind(&autodock_controller::view_callback, this, std::placeholders::_1));
             }
+            ~autodock_controller(){}
             void run();
             void set_docking_state(std::string new_docking_state);
 
         private:
             rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr vel_pub;
-            std::unique_ptr<tf2_ros::Buffer> buffer_dock2bot;
-            std::unique_ptr<tf2_ros::Buffer> buffer_odom;
-            std::unique_ptr<tf2_ros::Buffer> buffer_bot2dock;
 
-            geometry_msgs::msg::TransformStamped tf_dock2bot , tf_odom ,tf_bot2dock;
-
+            std::shared_ptr<tf2_ros::Buffer> buffer_;
+            std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+            geometry_msgs::msg::TransformStamped tf_odom ,tf_bot2dock, tf_dock2bot;
+            rclcpp::Subscription<geometry_msgs::msg::TransformStamped>::SharedPtr tag_sub_;
             void tags_callback();
             void set_action_state(std::string new_action_state);
             void fid2pos();
@@ -72,14 +71,15 @@ namespace automatic_parking {
             void centering_state_fun();
             void approach_state_fun();
             void final_approach_state_fun();
-            void openrover_forward(double distance);
-            void openrover_stop();
-            void openrover_turn(double radians);
+            void neuron_forward(double distance);
+            void neuron_stop();
+            void neuron_turn(double radians);
             void receive_tf();
             void action_state_manage();
+            void transform_filter(geometry_msgs::msg::TransformStamped &tf_);
             std::string action_state , docking_state , last_docking_state , last_action_state;
             bool in_view;
-            int tag_callback_counter , centering_counter , max_center_count , lost_tag_max , final_counter;
+            int tag_callback_counter, centering_counter, approach_counter, max_center_count, lost_tag_max, final_counter;
             double cmd_vel_angular_rate, cmd_vel_linear_rate, approach_angle, default_turn, final_approach_distance, jog_distance, finish_distance,mini_turn_period;
             struct tag_pose{
                 double theta;
@@ -89,8 +89,8 @@ namespace automatic_parking {
             tag_pose pose_set;
             geometry_msgs::msg::Twist cmd_vel_msg;
             boost::array<double,3> robot_point_temp , robot_point;
-            double temp_theta , temp_distance , tag_x, tag_y , tag_yaw, desire_angle,tune_angle;
-            double last_sign = 1;
+            double temp_theta, temp_distance, tag_x, tag_y, tag_yaw, desire_angle, tune_angle, odom_x, odom_y, odom_yaw;
+            double last_time = 0;
 
         
     };
