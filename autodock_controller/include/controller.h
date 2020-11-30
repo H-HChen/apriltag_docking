@@ -40,8 +40,6 @@ namespace automatic_parking {
                 this->get_parameter("jog_distance" , jog_distance);
                 this->declare_parameter<double>("finish_distance" ,0.5);
                 this->get_parameter("finish_distance" , finish_distance);
-                this->declare_parameter<double>("mini_turn_period" , 0.18);
-                this->get_parameter("mini_turn_period" , mini_turn_period);
                 this->declare_parameter<double>("tune_angle" ,0.42);
                 this->get_parameter("tune_angle" , tune_angle);
 
@@ -80,7 +78,7 @@ namespace automatic_parking {
             std::string action_state , docking_state , last_docking_state , last_action_state;
             bool in_view;
             int tag_callback_counter, centering_counter, approach_counter, max_center_count, lost_tag_max, final_counter;
-            double cmd_vel_angular_rate, cmd_vel_linear_rate, approach_angle, default_turn, final_approach_distance, jog_distance, finish_distance,mini_turn_period;
+            double cmd_vel_angular_rate, cmd_vel_linear_rate, approach_angle, default_turn, final_approach_distance, jog_distance, finish_distance;
             struct tag_pose{
                 double theta;
                 double distance ;

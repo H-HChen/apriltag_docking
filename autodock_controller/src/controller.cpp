@@ -158,11 +158,8 @@ void autodock_controller::approach_state_fun(){
                 set_docking_state("searching");
             }
             else{set_docking_state("centering");}
-        }
-
-        
+        } 
     }
-    
 }
 
 void autodock_controller::final_approach_state_fun(){
@@ -236,7 +233,6 @@ void autodock_controller::neuron_turn(double radians){
     cmd_vel_msg.angular.z = cmd_vel_angular;
     robot_point_temp = robot_point;
     temp_theta = radians;
-    
 }
 
 void autodock_controller::action_state_manage(){
@@ -245,7 +241,6 @@ void autodock_controller::action_state_manage(){
         if (distance(robot_point_temp, robot_point) >= fabs(temp_distance)){
             neuron_stop();
         }
-
     }
     if (action_state == "turning" ){
         if (fabs(robot_point_temp[2]-robot_point[2])>= fabs(temp_theta)){neuron_stop();}

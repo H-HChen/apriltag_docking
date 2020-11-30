@@ -1,0 +1,12 @@
+
+/autodock_controller:
+  ros__parameters:
+      cmd_vel_angular_rate: 0.25
+      cmd_vel_linear_rate: 0.25
+      default_turn: 1.0
+      final_approach_distance: 1.0
+      finish_distance: 0.5
+      jog_distance: 0.2
+      lost_tag_max: 5
+      max_center_count: 10
+      tune_angle: 0.42
