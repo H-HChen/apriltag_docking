@@ -154,10 +154,7 @@ void autodock_controller::approach_state_fun(){
         approach_counter += 1;
         if(approach_counter > lost_tag_max){
             neuron_stop();
-            if (desire_angle == tune_angle){
-                set_docking_state("searching");
-            }
-            else{set_docking_state("centering");}
+            set_docking_state("searching");
         } 
     }
 }
@@ -248,7 +245,7 @@ void autodock_controller::action_state_manage(){
             neuron_stop();}
     }
     if (tag_y){
-        if ((fabs(tag_y)<0.03) and (desire_angle == tune_angle)){
+        if ((fabs(tag_y)<0.02) and (desire_angle == tune_angle)){
             neuron_stop();
             final_counter += 1;
             if (final_counter > 3){
