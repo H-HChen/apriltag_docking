@@ -2,32 +2,34 @@
 
 ## install
 ```
-mkdir -p autodock_ros1_ws/src
-cd ~/autodock_ros1_ws/src
-git clone https://github.com/H-HChen/apriltag_ros.git
+mkdir -p autodock_ros2_ws/src
+cd ~/autodock_ros2_ws/src
+git clone https://github.com/H-HChen/apriltag_ros.git -b foxy-devel
 git clone https://github.com/AprilRobotics/apriltag.git
-git clone https://github.com/H-HChen/apriltag_docking.git
+git clone https://github.com/H-HChen/apriltag_docking.git -b foxy-devel
 cd ..
 rosdep install --from-paths src --ignore-src -r -y
-sudo pip3 install -U catkin_tools
-catkin build   #ignore all warning plz 
+colcon build --symlink-install    #ignore all warning plz 
 ``` 
 
-## Modify tag.yaml and setting.yaml
+## Modify tag family, tag size and tag_ids
 ```
-cd ~/autodock_ros1_ws/
-vim src/apriltag_ros/apriltag_ros/config/tag.yaml
+cd ~/autodock_ros2_ws/
+vim src/apriltag_ros/apriltag_ros/launch/tag_realsense.launch.py
 vim src/apriltag_ros/apriltag_ros/config/setting.yaml
 ```
 
-### tag.yaml
-Set tags id ,size and frame name of tf
+### tag_gazebo.launch.py
+Set tags size and tag family
 ```
-standalone_tags:
-  [
-    {id: 0, size: 0.08 , frame_name: tag_0},
-    {id: 10, size: 0.03}
-  ]
+param = {
+    "image_transport": "raw",
+    "family": "36h11",
+    "size": 0.08,
+    "max_hamming": 0,
+    "threads": 4,
+    "z_up": True
+}
 
 ```
 ### setting.yaml
