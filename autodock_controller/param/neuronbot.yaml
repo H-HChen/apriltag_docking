@@ -1,4 +1,3 @@
-
 /autodock_controller:
   ros__parameters:
       cmd_vel_angular_rate: 0.25

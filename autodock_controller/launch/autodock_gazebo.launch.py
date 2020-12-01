@@ -9,15 +9,15 @@ from launch_ros.actions import Node
 
 tag_detect_dir = get_package_share_directory('apriltag_ros')
 tag_launch_dir = os.path.join(tag_detect_dir, 'launch')
-controll_dir = get_package_share_directory('auto_dock')
+controll_dir = get_package_share_directory('apriltag_docking')
 controll_launch_dir = os.path.join(controll_dir, 'launch')
-config = os.path.join(get_package_share_directory('auto_dock'), 'param', 'neuronbot.yaml') 
+config = os.path.join(get_package_share_directory('apriltag_docking'), 'param', 'neuronbot.yaml') 
 
 def generate_launch_description():
 
     bringup_cmd_group = GroupAction([
     Node(
-        package='auto_dock',
+        package='apriltag_docking',
         executable='controller',
         name='autodock_controller',
         output='screen',
