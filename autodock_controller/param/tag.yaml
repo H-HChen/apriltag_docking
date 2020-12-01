@@ -1,5 +1,0 @@
-/apriltag/apriltag:
-      ros__parameters:
-          family: 36h5
-          size: 0.1
-          threads: 2
