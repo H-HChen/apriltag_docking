@@ -314,8 +314,8 @@ void autodock_controller::receive_tf(){
         odom_yaw = tf2::getYaw(tf_odom.transform.rotation);
         robot_point = {odom_x , odom_y , odom_yaw};
 
-        tf_dock2bot = buffer_->lookupTransform("tag36h11:0","base_link",tf2::TimePointZero);
-        tf_bot2dock = buffer_->lookupTransform("base_link","tag36h11:0",tf2::TimePointZero);
+        tf_dock2bot = buffer_->lookupTransform(tag_name, "base_link", tf2::TimePointZero);
+        tf_bot2dock = buffer_->lookupTransform("base_link", tag_name, tf2::TimePointZero);
         transform_filter(tf_dock2bot);
 
         if (!in_view){return;}

@@ -10,3 +10,5 @@
       lost_tag_max: 5
       max_center_count: 10
       tune_angle: 0.42
+      tag_id: "0"
+      tag_family: "36h11" 

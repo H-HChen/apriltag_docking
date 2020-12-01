@@ -42,10 +42,16 @@ namespace automatic_parking {
                 this->get_parameter("finish_distance" , finish_distance);
                 this->declare_parameter<double>("tune_angle" ,0.42);
                 this->get_parameter("tune_angle" , tune_angle);
+                this->declare_parameter<std::string>("tag_id" ,"0");
+                this->get_parameter("tag_id" , tag_id);
+                this->declare_parameter<std::string>("tag_family" ,"36h11");
+                this->get_parameter("tag_family" , tag_family);
 
                 vel_pub = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 20);
                 buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
                 tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*buffer_);
+                tag_name = "tag" + tag_family + ":" + tag_id;
+
                 //tag_sub_ = this->create_subscription<geometry_msgs::msg::TransformStamped>("tag_detected",rclcpp::QoS(10),
                  //           std::bind(&autodock_controller::view_callback, this, std::placeholders::_1));
             }
@@ -75,7 +81,7 @@ namespace automatic_parking {
             void receive_tf();
             void action_state_manage();
             void transform_filter(geometry_msgs::msg::TransformStamped &tf_);
-            std::string action_state , docking_state , last_docking_state , last_action_state;
+            std::string action_state , docking_state , last_docking_state , last_action_state, tag_id, tag_family, tag_name;
             bool in_view;
             int tag_callback_counter, centering_counter, approach_counter, max_center_count, lost_tag_max, final_counter;
             double cmd_vel_angular_rate, cmd_vel_linear_rate, approach_angle, default_turn, final_approach_distance, jog_distance, finish_distance;
