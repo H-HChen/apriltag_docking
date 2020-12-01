@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>auto_dock</name>
+  <name>apriltag_docking</name>
   <version>0.1.0</version>
   <description>The auto_dock package</description>
   <maintainer email="annhunter201@gmail.com">H-HChen</maintainer>
