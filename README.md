@@ -1,57 +1,62 @@
 # apriltag_docking
 
-## Install
+## install
 ```
-mkdir -p autodock_ros1_ws/src
-cd ~/autodock_ros1_ws/src
-git clone https://github.com/H-HChen/apriltag_ros.git
+mkdir -p autodock_ros2_ws/src
+cd ~/autodock_ros2_ws/src
+git clone https://github.com/H-HChen/apriltag_ros.git -b foxy-devel
 git clone https://github.com/AprilRobotics/apriltag.git
-git clone https://github.com/H-HChen/apriltag_docking.git
+git clone https://github.com/H-HChen/apriltag_docking.git -b foxy-devel
 cd ..
 rosdep install --from-paths src --ignore-src -r -y
-sudo pip3 install -U catkin_tools
-catkin build   #ignore all warning plz 
+colcon build --symlink-install    #ignore all warning plz 
 ``` 
 
-## Modify tag.yaml and setting.yaml
+## Modify tag family, tag size and tag_ids
 ```
-cd ~/autodock_ros1_ws/
-vim src/apriltag_ros/apriltag_ros/config/tag.yaml
-vim src/apriltag_ros/apriltag_ros/config/setting.yaml
+cd ~/autodock_ros2_ws/
+vim src/apriltag_ros/apriltag_ros/launch/tag_realsense.launch.py
+vim src/apriltag_docking/autodock_controller/param/neuronbot.yaml
 ```
-
-### tag.yaml
-Set tags id ,size and frame name of tf
+### tag_gazebo.launch.py
+Set tags size and tag family
 ```
-standalone_tags:
-  [
-    {id: 0, size: 0.08 , frame_name: tag_0},
-    {id: 10, size: 0.03}
-  ]
-
-```
-### setting.yaml
-
-Remember to turn publish_tf on
-```
-tag_family:        'tag36h11' # options: tagStandard52h13, tagStandard41h12, tag36h11, tag25h9, tag16h5, tagCustom48h12, tagCircle21h7, tagCircle49h12
-tag_threads:       4          # default: 2
-tag_decimate:      1.0        # default: 1.0
-tag_blur:          0.0        # default: 0.0
-tag_refine_edges:  1          # default: 1
-tag_debug:         0          # default: 0
-# Other parameters
-publish_tf:        true       # default: false
+param = {
+    "image_transport": "raw",
+    "family": "36h11",
+    "size": 0.08,
+    "max_hamming": 0,
+    "threads": 4,
+    "z_up": True
+}
 
 ```
-## Simulation in gazebo
+### neuronbot.yaml
+
+Set tag family and tad id
+```
+/autodock_controller:
+  ros__parameters:
+      cmd_vel_angular_rate: 0.25
+      cmd_vel_linear_rate: 0.25
+      default_turn: 1.0
+      final_approach_distance: 1.0
+      finish_distance: 0.5
+      jog_distance: 0.2
+      lost_tag_max: 5
+      max_center_count: 10
+      tune_angle: 0.42
+      tag_id: "0"
+      tag_family: "36h11" 
+```
+## simulation in gazebo
 1. Launch Neuronbot2 and tag in gazebo
 ```
-roslaunch neuronbot2_gazebo neuronbot2_world.launch world_model:=tag.model use_camera:=true
+ros2 launch neuronbot2_gazebo neuronbot2_world.launch.py world_model:=tag.model use_camera:=top
 ```
 2. Launch apriltag_docking 
 
     Remember to change names of camera_namespace and topic name
 ```
-roslaunch auto_dock auto_dock.launch  camera_name:=/camera image_topic:=/raw_image camera_frame:=camera_link
+ros2 launch apriltag_docking autodock_gazebo.launch.py
 ```
