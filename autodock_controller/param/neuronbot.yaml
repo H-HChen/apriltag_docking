@@ -1,5 +1,6 @@
 autodock_controller:
   ros__parameters:
+<<<<<<< HEAD
       cmd_vel_angular_rate: 0.20
       cmd_vel_linear_rate: 0.20        
       default_turn: 1.0                # default turn radian in search state 
@@ -11,3 +12,16 @@ autodock_controller:
       tune_angle: 0.42                 # default angle between bot and dock
       tag_frame: "dock_frame"          # tf name of tags, plz check frame name set in 'apriltag_ros', 
                                        # they must be the same. 
+=======
+      cmd_vel_angular_rate: 0.2
+      cmd_vel_linear_rate: 0.2
+      default_turn: 1.0
+      final_approach_distance: 1.0
+      finish_distance: 0.35
+      jog_distance: 0.15
+      lost_tag_max: 5
+      max_center_count: 10
+      tune_angle: 0.42
+      tag_id: "0"
+      tag_family: "36h11" 
+>>>>>>> d48a765ea49c1904b4724409c7276aa4b0df320b
