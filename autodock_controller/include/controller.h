@@ -21,7 +21,6 @@ namespace automatic_parking {
     class autodock_controller :public rclcpp::Node{
         public:
             autodock_controller():Node("autodock_controller"){
-                
                 this->declare_parameter<double>("cmd_vel_angular_rate", 0.25);
                 this->get_parameter("cmd_vel_angular_rate", cmd_vel_angular_rate );
                 this->declare_parameter<double>("cmd_vel_linear_rate", 0.25);
@@ -42,18 +41,12 @@ namespace automatic_parking {
                 this->get_parameter("finish_distance" , finish_distance);
                 this->declare_parameter<double>("tune_angle" ,0.42);
                 this->get_parameter("tune_angle" , tune_angle);
-                this->declare_parameter<std::string>("tag_id" ,"0");
-                this->get_parameter("tag_id" , tag_id);
-                this->declare_parameter<std::string>("tag_family" ,"36h11");
-                this->get_parameter("tag_family" , tag_family);
+                this->declare_parameter<std::string>("tag_frame" ,"dock_frame");
+                this->get_parameter("tag_frame" , tag_frame);
 
                 vel_pub = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 20);
                 buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
                 tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*buffer_);
-                tag_name = "tag" + tag_family + ":" + tag_id;
-
-                //tag_sub_ = this->create_subscription<geometry_msgs::msg::TransformStamped>("tag_detected",rclcpp::QoS(10),
-                 //           std::bind(&autodock_controller::view_callback, this, std::placeholders::_1));
             }
             ~autodock_controller(){}
             void run();
@@ -61,11 +54,10 @@ namespace automatic_parking {
 
         private:
             rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr vel_pub;
-
             std::shared_ptr<tf2_ros::Buffer> buffer_;
             std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
             geometry_msgs::msg::TransformStamped tf_odom ,tf_bot2dock, tf_dock2bot;
-            rclcpp::Subscription<geometry_msgs::msg::TransformStamped>::SharedPtr tag_sub_;
+            
             void tags_callback();
             void set_action_state(std::string new_action_state);
             void fid2pos();
@@ -81,7 +73,7 @@ namespace automatic_parking {
             void receive_tf();
             void action_state_manage();
             void transform_filter(geometry_msgs::msg::TransformStamped &tf_);
-            std::string action_state , docking_state , last_docking_state , last_action_state, tag_id, tag_family, tag_name;
+            std::string action_state , docking_state , last_docking_state , last_action_state, tag_frame;
             bool in_view;
             int tag_callback_counter, centering_counter, approach_counter, max_center_count, lost_tag_max, final_counter;
             double cmd_vel_angular_rate, cmd_vel_linear_rate, approach_angle, default_turn, final_approach_distance, jog_distance, finish_distance;
