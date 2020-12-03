@@ -15,27 +15,35 @@ colcon build --symlink-install    #ignore all warning plz
 ## Modify tag family, tag size and tag_ids
 ```
 cd ~/autodock_ros2_ws/
-vim src/apriltag_ros/apriltag_ros/launch/tag_realsense.launch.py
+vim src/apriltag_ros/apriltag_ros/cfg/tags_36h11_filter.yaml
 vim src/apriltag_docking/autodock_controller/param/neuronbot.yaml
 ```
 ### tag_gazebo.launch.py
-Set tags size and tag family
+Set tags size and tag family and tag_frames
 ```
-param = {
-    "image_transport": "raw",
-    "family": "36h11",
-    "size": 0.08,
-    "max_hamming": 0,
-    "threads": 4,
-    "z_up": True
-}
+image_transport: 'raw'    # image format
+family: '36h11'           # tag family name
+size: 0.08
+threads: 2
+max_hamming: 0          # maximum allowed hamming distance (corrected bits)
+z_up: true              # rotate about x-axis to have Z pointing upwards
 
+# see "apriltag.h" for more documentation on these optional parameters
+decimate: 1.0           # decimate resolution for quad detection
+blur: 1.0               # sigma of Gaussian blur for quad detection
+refine-edges: 1         # snap to strong gradients
+refine-decode: 0        # increase the number of detected tags
+refine-pose: 0          # increase the accuracy of the extracted pose
+debug: 0                # write additional debugging images to current working directory
+tag_ids: [0]            # tag ID
+tag_frames: [dock_frame]  # optional frame name
+tag_sizes: [0.08]   # optional tag-specific edge size
 ```
 ### neuronbot.yaml
 
 Set tag family and tad id
 ```
-/autodock_controller:
+autodock_controller:
   ros__parameters:
       cmd_vel_angular_rate: 0.25
       cmd_vel_linear_rate: 0.25
@@ -46,8 +54,7 @@ Set tag family and tad id
       lost_tag_max: 5
       max_center_count: 10
       tune_angle: 0.42
-      tag_id: "0"
-      tag_family: "36h11" 
+      tag_frame: "dock_frame"
 ```
 ## simulation in gazebo
 1. Launch Neuronbot2 and tag in gazebo
