@@ -2,7 +2,6 @@
 
 using namespace automatic_parking ;
 
-
 void autodock_controller::docking_state_manage(){
     //RCLCPP_INFO(get_logger(),"%s | %s", docking_state.c_str(), last_docking_state.c_str());
     
@@ -52,6 +51,9 @@ void autodock_controller::searching_state_fun(){
     if (action_state== "turning"){
         return;
     }
+    if (action_state == "jogging"){
+        return;
+    }
     if (tag_callback_counter<lost_tag_max){
         set_action_state("count_aruco_callbacks");
     }
@@ -63,7 +65,7 @@ void autodock_controller::searching_state_fun(){
 }
 
 void autodock_controller::blind_state_fun(){
-    if (action_state=="turning"){
+    if (action_state == "turning"){
         return;
     }
     if (action_state == "jogging"){
@@ -82,6 +84,9 @@ void autodock_controller::blind_state_fun(){
 
 void autodock_controller::centering_state_fun(){
     if (action_state == "turning"){
+        return;
+    }
+    if (action_state == "jogging"){
         return;
     }
     if (tag_callback_counter < 1){
