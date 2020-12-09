@@ -73,11 +73,11 @@ void autodock_controller::blind_state_fun(){
     }
     if (in_view){
         neuron_stop();
-        neuron_turn(0.8*sign(-tag_y));
+        neuron_turn(blind_angle*sign(-tag_y));
     }
     else{
         neuron_stop();
-        neuron_forward(fabs(tag_y/2));
+        neuron_forward(fabs(tag_y/1.5));
         set_docking_state("searching");
     }
 }
