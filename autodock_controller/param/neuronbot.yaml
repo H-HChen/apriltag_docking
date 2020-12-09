@@ -11,3 +11,4 @@ autodock_controller:
       tune_angle: 0.42                 # default angle between bot and dock
       tag_frame: "dock_frame"          # tf name of tags, plz check frame name set in 'apriltag_ros', 
                                        # they must be the same. 
+      blind_angle: 0.8
