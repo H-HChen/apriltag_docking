@@ -41,9 +41,11 @@ namespace automatic_parking {
                 this->get_parameter("finish_distance" , finish_distance);
                 this->declare_parameter<double>("tune_angle" ,0.42);
                 this->get_parameter("tune_angle" , tune_angle);
+                this->declare_parameter<double>("blind_angle" ,0.9);
+                this->get_parameter("blind_angle" , blind_angle);
                 this->declare_parameter<std::string>("tag_frame" ,"dock_frame");
                 this->get_parameter("tag_frame" , tag_frame);
-
+                
                 vel_pub = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 20);
                 buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
                 tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*buffer_);
@@ -76,7 +78,8 @@ namespace automatic_parking {
             std::string action_state , docking_state , last_docking_state , last_action_state, tag_frame;
             bool in_view;
             int tag_callback_counter, centering_counter, approach_counter, max_center_count, lost_tag_max, final_counter;
-            double cmd_vel_angular_rate, cmd_vel_linear_rate, approach_angle, default_turn, final_approach_distance, jog_distance, finish_distance;
+            double cmd_vel_angular_rate, cmd_vel_linear_rate, approach_angle, default_turn, 
+                    final_approach_distance, jog_distance, finish_distance, blind_angle;
             struct tag_pose{
                 double theta;
                 double distance ;
