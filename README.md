@@ -7,7 +7,7 @@ cd ~/autodock_ros2_ws/src
 git clone https://github.com/H-HChen/neuronbot2.git
 git clone https://github.com/H-HChen/apriltag_ros.git -b foxy-devel
 git clone https://github.com/AprilRobotics/apriltag.git
-git clone https://github.com/H-HChen/apriltag_docking.git -b foxy-devel
+git clone https://github.com/H-HChen/apriltag_docking.git 
 cd ..
 rosdep install --from-paths src --ignore-src -r -y
 colcon build --symlink-install    #ignore all warning plz 
