@@ -4,6 +4,7 @@
 ```
 mkdir -p autodock_ros2_ws/src
 cd ~/autodock_ros2_ws/src
+git clone https://github.com/H-HChen/neuronbot2.git
 git clone https://github.com/H-HChen/apriltag_ros.git -b foxy-devel
 git clone https://github.com/AprilRobotics/apriltag.git
 git clone https://github.com/H-HChen/apriltag_docking.git -b foxy-devel
@@ -32,8 +33,6 @@ z_up: true              # rotate about x-axis to have Z pointing upwards
 decimate: 1.0           # decimate resolution for quad detection
 blur: 1.0               # sigma of Gaussian blur for quad detection
 refine-edges: 1         # snap to strong gradients
-refine-decode: 0        # increase the number of detected tags
-refine-pose: 0          # increase the accuracy of the extracted pose
 debug: 0                # write additional debugging images to current working directory
 tag_ids: [0]            # tag ID
 tag_frames: [dock_frame]  # optional frame name
