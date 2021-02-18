@@ -1,6 +1,6 @@
 # apriltag_docking
 
-## install
+## Install
 ```
 mkdir -p autodock_ros2_ws/src
 cd ~/autodock_ros2_ws/src
@@ -19,7 +19,7 @@ cd ~/autodock_ros2_ws/
 vim src/apriltag_ros/apriltag_ros/cfg/tags_36h11_filter.yaml
 vim src/apriltag_docking/autodock_controller/param/neuronbot.yaml
 ```
-### tag_gazebo.launch.py
+### tags_36h11_filter.yaml
 Set tags size and tag family and tag_frames
 ```
 image_transport: 'raw'    # image format
@@ -55,7 +55,7 @@ autodock_controller:
       tune_angle: 0.42
       tag_frame: "dock_frame"
 ```
-## simulation in gazebo
+## Simulation in gazebo
 1. Launch Neuronbot2 and tag in gazebo
 ```
 ros2 launch neuronbot2_gazebo neuronbot2_world.launch.py world_model:=tag.model use_camera:=top
