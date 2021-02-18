@@ -10,10 +10,8 @@ from launch_ros.actions import Node
 tag_launch_dir = os.path.join(get_package_share_directory('apriltag_ros'), 'launch')
 config = os.path.join(get_package_share_directory('apriltag_docking'), 'param', 'neuronbot.yaml') 
 
-image_topic_ = LaunchConfiguration('image_topic', default="image_raw")
+image_topic = LaunchConfiguration('image_topic', default="image_raw")
 camera_name = LaunchConfiguration('camera_name', default="/camera_color_frame")
-image_topic = [camera_name, '/', image_topic_]
-info_topic = [camera_name, "/camera_info"]
 
 def generate_launch_description():
 
@@ -28,7 +26,7 @@ def generate_launch_description():
     IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(tag_launch_dir,'tag_gazebo.launch.py')),
         launch_arguments={'image_topic': image_topic,
-                          'camera_name': camera_name}.items(),)
+                          'camera_name': camera_name}.items())
     ])
 
     ld = LaunchDescription()
