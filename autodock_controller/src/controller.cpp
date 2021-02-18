@@ -193,6 +193,10 @@ void autodock_controller::neuron_forward(double distance){
             cmd_vel_linear = cmd_vel_linear/2;
         }
     }
+    else{
+        cmd_vel_linear = 0;
+        return;
+    }
     cmd_vel_msg.linear.x = cmd_vel_linear;
     robot_point_temp = robot_point;
     temp_distance = distance;
@@ -217,6 +221,10 @@ void autodock_controller::neuron_turn(double radians){
         if (fabs(radians) < 0.1){
             cmd_vel_angular = cmd_vel_angular/2;
         }
+    }
+    else{
+        cmd_vel_angular = 0;
+        return;
     }
     cmd_vel_msg.angular.z = cmd_vel_angular;
     robot_point_temp = robot_point;
@@ -283,7 +291,7 @@ void autodock_controller::fid2pos(){
     else{theta_bounds = r/30.0;}
 
     //RCLCPP_INFO(get_logger(),"Theta: %3.3f, distance: %3.3f, theta_bounds: %3.3f", theta, r, theta_bounds);
-    pose_set = {theta: theta-desire_angle*sign(tag_y), distance: r, theta_bounds: theta_bounds};
+    pose_set = {theta-desire_angle*sign(tag_y), r, theta_bounds};
 }
 
 void autodock_controller::transform_filter(geometry_msgs::msg::TransformStamped &tf_){
@@ -307,7 +315,7 @@ void autodock_controller::receive_tf(){
         tf_bot2dock = buffer_->lookupTransform("base_link", tag_frame, tf2::TimePointZero);
         transform_filter(tf_dock2bot);
         if (!in_view){
-            RCLCPP_WARN(get_logger(),"Tag Detection Lost");
+            //RCLCPP_WARN(get_logger(),"Tag Detection Lost");
             return;
         }
         tag_x = tf_dock2bot.transform.translation.x;
@@ -316,14 +324,6 @@ void autodock_controller::receive_tf(){
         fid2pos();
     }
     catch(tf2::TransformException &ex){
-        RCLCPP_ERROR(get_logger(),"%s",ex.what());
-        in_view = false;
-    }
-    catch (tf2::ExtrapolationException & ex) {
-        RCLCPP_ERROR(get_logger(),"%s",ex.what());
-        in_view = false;
-    }
-    catch (tf2::ConnectivityException & ex) {
         RCLCPP_ERROR(get_logger(),"%s",ex.what());
         in_view = false;
     }
