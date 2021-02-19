@@ -236,6 +236,7 @@ void autodock_controller::action_state_manage(){
     if (action_state == "jogging"){
         if (distance(robot_point_temp, robot_point) >= fabs(temp_distance)){
             neuron_stop();
+            if (docking_state == "approach"){set_docking_state("centering");}
         }
     }
     if (action_state == "turning" ){
