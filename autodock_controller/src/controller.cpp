@@ -55,7 +55,7 @@ void autodock_controller::searching_state_fun(){
         return;
     }
     if (tag_callback_counter<lost_tag_max){
-        set_action_state("count_aruco_callbacks");
+        set_action_state("count_tag_callbacks");
     }
     else{
         tag_callback_counter = 0;
@@ -92,7 +92,7 @@ void autodock_controller::centering_state_fun(){
     if (tag_callback_counter < 1){
         centering_counter += 1;
         //RCLCPP_INFO(get_logger(),"centering_counter:%d" , centering_counter);
-        set_action_state("count_aruco_callbacks");
+        set_action_state("count_tag_callbacks");
         return;
     }
     tag_callback_counter = 0;
@@ -260,7 +260,7 @@ void autodock_controller::action_state_manage(){
 }
 
 void autodock_controller::tags_callback(){
-    if (action_state == "count_aruco_callbacks"){
+    if (action_state == "count_tag_callbacks"){
         tag_callback_counter += 1;
     }
     else{
