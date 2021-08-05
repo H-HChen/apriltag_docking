@@ -19,6 +19,7 @@ find_package(tf2_geometry_msgs REQUIRED)
 find_package(tf2  REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(autodock_msgs REQUIRED)
 
 
 include_directories(
@@ -27,7 +28,7 @@ include_directories(
 
 set(EXECUTABLE_NAME "controller")
 
-add_executable( ${EXECUTABLE_NAME} src/controller.cpp)
+add_executable( ${EXECUTABLE_NAME} src/controller.cpp src/action_server.cpp)
 
 
 set(DEPENDENCIES
@@ -38,6 +39,7 @@ set(DEPENDENCIES
   "tf2"
   "tf2_ros"
   "sensor_msgs"
+  "autodock_msgs"
 )
 
 ament_target_dependencies(controller ${DEPENDENCIES})
